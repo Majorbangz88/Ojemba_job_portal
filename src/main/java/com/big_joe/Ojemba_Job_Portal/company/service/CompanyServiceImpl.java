@@ -3,11 +3,13 @@ package com.big_joe.Ojemba_Job_Portal.company.service;
 import com.big_joe.Ojemba_Job_Portal.company.CompanyUtils;
 import com.big_joe.Ojemba_Job_Portal.company.dto.CompanyResponse;
 import com.big_joe.Ojemba_Job_Portal.company.dto.UpdateRequest;
+import com.big_joe.Ojemba_Job_Portal.company.exception.CompanyNotFoundException;
 import com.big_joe.Ojemba_Job_Portal.company.model.Company;
 import com.big_joe.Ojemba_Job_Portal.company.model.CompanyInfo;
 import com.big_joe.Ojemba_Job_Portal.company.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -67,7 +69,7 @@ public class CompanyServiceImpl implements CompanyService{
     }
 
     @Override
-    public CompanyResponse updateCompany(String id, UpdateRequest request) {
+    public CompanyResponse fullUpdateCompany(String id, UpdateRequest request) {
         UUID uuid;
 
         try {
@@ -76,13 +78,8 @@ public class CompanyServiceImpl implements CompanyService{
             return CompanyUtils.buildCompanyResponse(CompanyUtils.INVALID_ID_FORMAT_CODE, CompanyUtils.INVALID_ID_FORMAT_MESSAGE, null);
         }
 
-        Optional<Company> optionalCompany = companyRepository.findById(uuid);
-
-        if (optionalCompany.isEmpty()) {
-            return CompanyUtils.buildCompanyResponse(CompanyUtils.COMPANY_NOT_EXIST_CODE, CompanyUtils.COMPANY_NOT_EXISTS_MESSAGE, null);
-        }
-
-        Company foundCompany = optionalCompany.get();
+        Company foundCompany = companyRepository.findById(uuid)
+                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
         if (!foundCompany.getEmail().equals(request.getEmail()) &&
                 companyRepository.existsByEmail(request.getEmail())) {
@@ -90,17 +87,70 @@ public class CompanyServiceImpl implements CompanyService{
             return CompanyUtils.buildCompanyResponse(CompanyUtils.COMPANY_EXISTS_CODE, CompanyUtils.COMPANY_EXISTS_MESSAGE, null);
         }
 
+        applyUpdate(request, foundCompany);
+
+        Company updatedCompany = companyRepository.save(foundCompany);
+
+         return CompanyUtils.buildCompanyResponse(CompanyUtils.UPDATE_SUCCESSFUL_CODE, CompanyUtils.UPDATE_SUCCESSFUL_MESSAGE, updatedCompany);
+    }
+
+    private static void applyUpdate(UpdateRequest request, Company foundCompany) {
         foundCompany.setName(request.getName());
         foundCompany.setAddress(request.getAddress());
         foundCompany.setEmail(request.getEmail());
         foundCompany.setPhoneNumber(request.getPhoneNumber());
         foundCompany.setRegNumber(request.getRegNumber());
         foundCompany.setYearsOfExistence(request.getYearsOfExistence());
+    }
+
+    @Override
+    public CompanyResponse partialUpdateCompany(String id, UpdateRequest request) {
+        UUID uuid;
+
+        try {
+            uuid = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            return CompanyUtils.buildCompanyResponse(CompanyUtils.INVALID_ID_FORMAT_CODE, CompanyUtils.INVALID_ID_FORMAT_MESSAGE, null);
+        }
+
+        Company foundCompany = companyRepository.findById(uuid)
+                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
+        if (!foundCompany.getEmail().equals(request.getEmail()) &&
+                companyRepository.existsByEmail(request.getEmail())) {
+
+            return CompanyUtils.buildCompanyResponse(CompanyUtils.COMPANY_EXISTS_CODE, CompanyUtils.COMPANY_EXISTS_MESSAGE, null);
+        }
+
+        applyPartialUpdates(request, foundCompany);
 
         Company updatedCompany = companyRepository.save(foundCompany);
 
-         return CompanyUtils.buildCompanyResponse(CompanyUtils.UPDATE_SUCCESSFUL_CODE, CompanyUtils.UPDATE_SUCCESSFUL_MESSAGE, updatedCompany);
+        return CompanyUtils.buildCompanyResponse(CompanyUtils.UPDATE_SUCCESSFUL_CODE, CompanyUtils.UPDATE_SUCCESSFUL_MESSAGE, updatedCompany);
     }
+
+    private void applyPartialUpdates(UpdateRequest request, Company company) {
+        if (StringUtils.hasText(request.getName())) {
+            company.setName(request.getName());
+        }
+        if (StringUtils.hasText(request.getAddress())) {
+            company.setAddress(request.getAddress());
+        }
+        if (StringUtils.hasText(request.getEmail()) && !company.getEmail().equals(request.getEmail())) {
+            company.setEmail(request.getEmail());
+        }
+        if (StringUtils.hasText(request.getPhoneNumber())) {
+            company.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (StringUtils.hasText(request.getRegNumber())) {
+            company.setRegNumber(request.getRegNumber());
+        }
+        if (request.getYearsOfExistence() > 0) {
+            company.setYearsOfExistence(request.getYearsOfExistence());
+        }
+    }
+
+
 
 
 }
