@@ -16,6 +16,7 @@ public class CompanyUtils {
     public static final String UPDATE_SUCCESSFUL_MESSAGE = "Company details updated successfully";
     public static final String COMPANY_DELETION_CODE = "006";
     public static final String COMPANY_DELETION_MESSAGE = "Company deleted successfully";
+    public static final String INTERNAL_SERVER_ERROR_CODE = "500";
 
     public static CompanyResponse buildCompanyResponse(
             String statusCode,
