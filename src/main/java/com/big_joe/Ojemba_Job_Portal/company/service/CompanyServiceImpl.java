@@ -5,7 +5,6 @@ import com.big_joe.Ojemba_Job_Portal.company.dto.CompanyResponse;
 import com.big_joe.Ojemba_Job_Portal.company.dto.UpdateRequest;
 import com.big_joe.Ojemba_Job_Portal.company.exception.CompanyNotFoundException;
 import com.big_joe.Ojemba_Job_Portal.company.model.Company;
-import com.big_joe.Ojemba_Job_Portal.company.model.CompanyInfo;
 import com.big_joe.Ojemba_Job_Portal.company.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,14 +86,14 @@ public class CompanyServiceImpl implements CompanyService{
             return CompanyUtils.buildCompanyResponse(CompanyUtils.COMPANY_EXISTS_CODE, CompanyUtils.COMPANY_EXISTS_MESSAGE, null);
         }
 
-        applyUpdate(request, foundCompany);
+        applyFullUpdate(request, foundCompany);
 
         Company updatedCompany = companyRepository.save(foundCompany);
 
          return CompanyUtils.buildCompanyResponse(CompanyUtils.UPDATE_SUCCESSFUL_CODE, CompanyUtils.UPDATE_SUCCESSFUL_MESSAGE, updatedCompany);
     }
 
-    private static void applyUpdate(UpdateRequest request, Company foundCompany) {
+    private static void applyFullUpdate(UpdateRequest request, Company foundCompany) {
         foundCompany.setName(request.getName());
         foundCompany.setAddress(request.getAddress());
         foundCompany.setEmail(request.getEmail());
@@ -114,7 +113,7 @@ public class CompanyServiceImpl implements CompanyService{
         }
 
         Company foundCompany = companyRepository.findById(uuid)
-                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+                .orElseThrow(() -> new CompanyNotFoundException(CompanyUtils.COMPANY_NOT_EXISTS_MESSAGE));
 
         if (!foundCompany.getEmail().equals(request.getEmail()) &&
                 companyRepository.existsByEmail(request.getEmail())) {
@@ -150,7 +149,13 @@ public class CompanyServiceImpl implements CompanyService{
         }
     }
 
+    @Override
+    public CompanyResponse deleteCompany(UUID uuid) {
+        Company foundCompany = companyRepository.findById(uuid).orElseThrow(() ->
+                new CompanyNotFoundException(CompanyUtils.COMPANY_NOT_EXISTS_MESSAGE));
 
+        companyRepository.delete(foundCompany);
 
-
+        return CompanyUtils.buildCompanyResponse(CompanyUtils.COMPANY_DELETION_CODE, CompanyUtils.COMPANY_DELETION_MESSAGE, null);
+    }
 }
