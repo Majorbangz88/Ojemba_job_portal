@@ -2,17 +2,18 @@ package com.big_joe.Ojemba_Job_Portal.company.controller;
 
 import com.big_joe.Ojemba_Job_Portal.company.CompanyUtils;
 import com.big_joe.Ojemba_Job_Portal.company.dto.CompanyResponse;
+import com.big_joe.Ojemba_Job_Portal.company.model.Company;
 import com.big_joe.Ojemba_Job_Portal.company.service.CompanyService;
 import com.big_joe.Ojemba_Job_Portal.company.service.RegCompanyRequest;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/vi/company")
@@ -37,5 +38,11 @@ public class Controller {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Company>> getAll() {
+        List<Company> allCompanies = companyService.allCompanies();
+        return new ResponseEntity<>(allCompanies, HttpStatus.OK);
     }
 }
