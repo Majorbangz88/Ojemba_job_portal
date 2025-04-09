@@ -14,5 +14,7 @@ public interface CompanyService {
 
     CompanyResponse getByCompanyName(String companyName);
 
-    CompanyResponse updateCompany(String id, UpdateRequest request);
+    CompanyResponse fullUpdateCompany(String id, UpdateRequest request);
+
+    CompanyResponse partialUpdateCompany(String id, UpdateRequest request);
 }
