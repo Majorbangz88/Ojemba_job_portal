@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class CompanyInfo {
-    private UUID id;
+    private String id;
     private String name;
     private String email;
     private String address;
