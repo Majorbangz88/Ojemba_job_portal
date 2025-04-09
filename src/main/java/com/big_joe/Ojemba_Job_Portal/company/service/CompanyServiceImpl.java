@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,7 +48,7 @@ public class CompanyServiceImpl implements CompanyService{
                 .statusCode(CompanyUtils.COMPANY_REG_SUCCESS_CODE)
                 .message("Company Registration Successful")
                 .registeredCompany(CompanyInfo.builder()
-                        .id(UUID.fromString(savedCompany.getPassword()))
+                        .id(savedCompany.getPassword())
                         .name(savedCompany.getName())
                         .address(savedCompany.getAddress())
                         .email(savedCompany.getEmail())
@@ -57,4 +58,40 @@ public class CompanyServiceImpl implements CompanyService{
                         .build())
                 .build();
     }
+
+    @Override
+    public List<Company> allCompanies() {
+        return companyRepository.findAll();
+    }
+
+    @Override
+    public CompanyResponse getByCompanyName(String companyName) {
+        Optional<Company> optionalCompany = companyRepository.findByName(companyName);
+
+        if(optionalCompany.isEmpty()) {
+            CompanyResponse.builder()
+                    .statusCode(CompanyUtils.COMPANY_NOT_EXIST_CODE)
+                    .message("This company data was not found")
+                    .registeredCompany(null)
+                    .build();
+        }
+
+        Company foundCompany = optionalCompany.get();
+
+        return CompanyResponse.builder()
+                .statusCode(CompanyUtils.COMPANY_EXISTS_CODE)
+                .message("Company found")
+                .registeredCompany(CompanyInfo.builder()
+                        .id(foundCompany.getId().toString())
+                        .name(foundCompany.getName())
+                        .address(foundCompany.getAddress())
+                        .email(foundCompany.getEmail())
+                        .phoneNumber(foundCompany.getPhoneNumber())
+                        .regNumber(foundCompany.getRegNumber())
+                        .yearsOfExistence(foundCompany.getYearsOfExistence())
+                        .build())
+                .build();
+    }
+
+
 }
